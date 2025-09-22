@@ -14,7 +14,9 @@ class KnowledgeGraph:
             self.G.add_edge(subj, obj, key=pred, pred=pred, weight=weight, ts=ts, **attrs)
 
     def upsert_entity(self, name: str, etype: str = "entity", **attrs):
-        self.G.add_node(name, type=etype, **attrs, ts=time.time())
+        # Avoid 'type' conflict with NetworkX by using 'entity_type'
+        node_attrs = {**attrs, "entity_type": etype, "ts": time.time()}
+        self.G.add_node(name, **node_attrs)
         storage.upsert_kg_entity(name, etype, attrs)
 
     def upsert_relation(self, subj: str, pred: str, obj: str, weight: float=1.0, **attrs):

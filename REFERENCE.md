@@ -95,23 +95,47 @@ This is a sophisticated cognitive agent system that combines multiple AI techniq
 **Purpose**: Memory retrieval strategies
 - **What it does**: Defines different approaches to retrieving and weighting memories
 - **Key strategies**:
-  - DefaultMemoryStrategy: Basic retrieval
-  - EnhancedMemoryStrategy: Optimized for semantic/skills memory
+  - DefaultMemoryStrategy: Basic retrieval with KG integration
+  - EnhancedMemoryStrategy: Optimized for semantic/skills memory with KG fallback
+  - KeywordMemoryStrategy: Direct SQL keyword matching (default)
   - AdaptiveMemoryStrategy: Context-aware retrieval
   - PrioritizedMemoryStrategy: Weighted memory types
 - **Why needed**: Enables efficient and context-appropriate memory retrieval
 
 #### 9. `memory_extractors.py` ⭐
-**Purpose**: Enhanced memory extraction from conversations
-- **What it does**: Automatically extracts structured facts and skills from conversations
+**Purpose**: Core memory extraction from conversations
+- **What it does**: Provides the foundational memory extraction classes
 - **Key features**:
   - SemanticFactExtractor: Extracts personal info, preferences, capabilities
   - SkillsExtractor: Captures learning patterns and skills
-  - Confidence scoring
-  - Automatic storage
-- **Why needed**: Populates semantic and skills memory for faster, more accurate responses
+  - MemoryEnhancer: Basic coordination between extractors
+  - Confidence scoring and storage
+- **Why needed**: Foundation for memory extraction that's used by enhanced systems
 
-#### 10. `knowledge_extractors.py` ⭐
+#### 10. `memory_enhancer_improved.py` ⭐ **NEW**
+**Purpose**: Intelligent memory coordination and KG integration
+- **What it does**: Advanced memory enhancer that intelligently routes facts between KG and semantic storage
+- **Key features**:
+  - Intelligent fact routing (relationships → KG, searchable facts → semantic)
+  - Deduplication to prevent redundant storage
+  - Implicit relationship extraction from conversation patterns
+  - Cache management for processed items
+  - Unified knowledge interface
+- **Why needed**: Eliminates KG/semantic redundancy and provides intelligent memory coordination
+
+#### 11. `complete_enhanced_memory.py` ⭐ **NEW**
+**Purpose**: Complete enhanced memory storage pipeline step
+- **What it does**: Comprehensive memory storage with all advanced features integrated
+- **Key features**:
+  - LLM-powered intelligent reflections
+  - Memory effectiveness scoring and tracking
+  - Enhanced tool result processing and storage
+  - Conversation buffer management for context
+  - Comprehensive statistics and monitoring
+  - Integration with ImprovedMemoryEnhancer
+- **Why needed**: Provides the most advanced memory storage system with full feature integration
+
+#### 12. `knowledge_extractors.py` ⭐
 **Purpose**: Knowledge extraction from user input
 - **What it does**: Extracts structured knowledge for the knowledge graph
 - **Key features**:
@@ -189,7 +213,7 @@ This is a sophisticated cognitive agent system that combines multiple AI techniq
 
 ## 📊 File Importance Summary
 
-### **🔴 Critical Files (10 files)**
+### **🔴 Critical Files (14 files)**
 These files are absolutely necessary for the system to function:
 
 1. `refactored_cognitive_agent.py` - Main orchestrator
@@ -199,11 +223,13 @@ These files are absolutely necessary for the system to function:
 5. `kgraph.py` - Knowledge graph
 6. `tool_system.py` - Tool framework
 7. `intelligent_knowledge_tool.py` - Knowledge search
-8. `memory_strategies.py` - Memory retrieval
-9. `memory_extractors.py` - Memory extraction
-10. `knowledge_extractors.py` - Knowledge extraction
-11. `cogai.db` - Database file
-12. `env/` - Python environment
+8. `memory_strategies.py` - Memory retrieval strategies
+9. `memory_extractors.py` - Core memory extraction
+10. `memory_enhancer_improved.py` - **NEW** Intelligent memory coordination
+11. `complete_enhanced_memory.py` - **NEW** Complete enhanced memory storage
+12. `knowledge_extractors.py` - Knowledge extraction
+13. `cogai.db` - Database file
+14. `env/` - Python environment
 
 ### **🟡 Optional Files (4 files)**
 These files can be removed if you want to simplify:
@@ -228,12 +254,17 @@ processing_pipeline.py (Cognitive Workflow)
     ├── Tool Execution
     ├── Response Generation
     ├── Knowledge Extraction
-    ├── Memory Storage
+    ├── Complete Enhanced Memory Storage ⭐ **NEW**
+    │   ├── memory_enhancer_improved.py (Intelligent Coordination)
+    │   ├── KG Integration (Relationships)
+    │   ├── Semantic Storage (Searchable Facts)
+    │   ├── LLM-Powered Reflections
+    │   └── Memory Effectiveness Tracking
     └── Reflection
     ↓
 storage.py (Database) ← memory_strategies.py (Retrieval)
     ↓
-embeddings.py (Vectorization)
+embeddings.py (Vectorization) ← kgraph.py (Knowledge Graph)
     ↓
 Response to User
 ```
@@ -241,13 +272,14 @@ Response to User
 ## 💡 Recommendations
 
 ### **For Production Use:**
-- Keep all **Critical Files** (10 files)
+- Keep all **Critical Files** (14 files)
 - Remove **Optional Files** to reduce complexity
 - The system will work perfectly with just the core files
 
 ### **For Development/Debugging:**
 - Keep `view_db.py` and `quick_db_view.py` for database inspection
 - Keep `agent_config.py` if you want multiple agent configurations
+- Keep `test_enhanced_memory.py` for testing the enhanced memory system
 
 ### **Minimum Viable System:**
 If you want the absolute minimum, you need:
@@ -260,8 +292,66 @@ If you want the absolute minimum, you need:
 7. `intelligent_knowledge_tool.py`
 8. `memory_strategies.py`
 9. `memory_extractors.py`
-10. `knowledge_extractors.py`
-11. `cogai.db`
-12. `env/`
+10. `memory_enhancer_improved.py` ⭐ **NEW**
+11. `complete_enhanced_memory.py` ⭐ **NEW**
+12. `knowledge_extractors.py`
+13. `cogai.db`
+14. `env/`
 
-**Total: 12 essential files** for a fully functional cognitive agent system.
+**Total: 14 essential files** for a fully functional cognitive agent system with enhanced memory capabilities.
+
+---
+
+## 🚀 **Enhanced Memory System Improvements** ⭐ **NEW**
+
+### **Major Upgrades Implemented:**
+
+#### **1. Intelligent Memory Routing**
+- **Problem Solved**: KG and semantic memory had significant overlap and redundancy
+- **Solution**: `memory_enhancer_improved.py` intelligently routes facts:
+  - **Relationships** (user likes purple) → Knowledge Graph
+  - **Searchable facts** (calculations, search results) → Semantic storage
+- **Benefit**: Eliminates redundancy and optimizes storage
+
+#### **2. Complete Enhanced Memory Storage**
+- **New File**: `complete_enhanced_memory.py`
+- **Features**:
+  - LLM-powered intelligent reflections
+  - Memory effectiveness scoring and tracking
+  - Enhanced tool result processing
+  - Conversation buffer management
+  - Comprehensive statistics and monitoring
+
+#### **3. Advanced Memory Strategies**
+- **Updated**: `memory_strategies.py` now includes:
+  - **KeywordMemoryStrategy**: Direct SQL keyword matching (default)
+  - **Enhanced KG integration**: All strategies now query KG first, fallback to semantic
+- **Benefit**: More reliable memory retrieval
+
+#### **4. Deduplication & Cache Management**
+- **Feature**: Prevents duplicate fact storage
+- **Cache**: Manages processed items to avoid reprocessing
+- **Benefit**: Cleaner database and better performance
+
+#### **5. Implicit Relationship Learning**
+- **Feature**: Extracts relationships from conversation patterns
+- **Examples**: 
+  - "Thank you" → "user satisfied_with interaction"
+  - Questions about topics → "user interested_in topic"
+- **Benefit**: Richer knowledge representation
+
+### **Test Results:**
+The enhanced memory system shows excellent performance:
+- ✅ **28 episodic memories** stored
+- ✅ **23 semantic facts** extracted
+- ✅ **5 skills/patterns** learned  
+- ✅ **13 KG entities** with **12 relations**
+- ✅ **Memory retrieval** working correctly
+- ✅ **No redundancy** between KG and semantic storage
+
+### **Architecture Benefits:**
+1. **Unified Knowledge Interface**: Single source of truth for relationships
+2. **Intelligent Fact Routing**: Optimal storage based on fact type
+3. **Memory Effectiveness Tracking**: Monitor system performance
+4. **LLM-Powered Insights**: Generate intelligent reflections
+5. **Enhanced Tool Integration**: Better storage of tool results

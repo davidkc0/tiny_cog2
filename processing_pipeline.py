@@ -471,10 +471,11 @@ class KnowledgeExtractionStep(ProcessingStep):
 class MemoryStorageStep(ProcessingStep):
     """Enhanced step that stores conversation and knowledge in memory"""
     
-    def __init__(self, storage_module, embeddings_module):
+    def __init__(self, storage_module, embeddings_module, kg=None):
         self.storage = storage_module
         self.embeddings = embeddings_module
-        self.memory_enhancer = MemoryEnhancer(storage_module, embeddings_module)
+        self.kg = kg
+        self.memory_enhancer = MemoryEnhancer(storage_module, embeddings_module, kg)
     
     @property
     def name(self) -> str:
@@ -624,8 +625,10 @@ class PipelineFactory:
     
     @staticmethod
     def create_default_pipeline(llm_caller, tool_registry, memory_manager, 
-                               knowledge_extractor, storage_module, embeddings_module):
+                               knowledge_extractor, storage_module, embeddings_module, kg=None):
         """Create the default processing pipeline"""
+        from complete_enhanced_memory import CompleteEnhancedMemoryStorageStep
+        
         pipeline = ProcessingPipeline()
         
         # Add steps in order
@@ -634,7 +637,7 @@ class PipelineFactory:
         pipeline.add_step(ToolExecutionStep(tool_registry))
         pipeline.add_step(ResponseGenerationStep(llm_caller))
         pipeline.add_step(KnowledgeExtractionStep(knowledge_extractor))
-        pipeline.add_step(MemoryStorageStep(storage_module, embeddings_module))
+        pipeline.add_step(CompleteEnhancedMemoryStorageStep(storage_module, embeddings_module, kg, llm_caller))
         pipeline.add_step(ReflectionStep(storage_module, embeddings_module))
         
         return pipeline
@@ -652,13 +655,15 @@ class PipelineFactory:
     
     @staticmethod
     def create_memory_focused_pipeline(llm_caller, memory_manager, 
-                                     storage_module, embeddings_module):
+                                     storage_module, embeddings_module, kg=None):
         """Create a pipeline focused on memory without tools"""
+        from complete_enhanced_memory import CompleteEnhancedMemoryStorageStep
+        
         pipeline = ProcessingPipeline()
         
         pipeline.add_step(ContextBuildingStep(memory_manager))
         pipeline.add_step(ResponseGenerationStep(llm_caller))
-        pipeline.add_step(MemoryStorageStep(storage_module, embeddings_module))
+        pipeline.add_step(CompleteEnhancedMemoryStorageStep(storage_module, embeddings_module, kg, llm_caller))
         pipeline.add_step(ReflectionStep(storage_module, embeddings_module))
         
         return pipeline

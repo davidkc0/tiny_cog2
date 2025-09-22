@@ -7,7 +7,6 @@ from collections import deque
 from typing import List, Dict, Any, Optional
 import ollama
 from dotenv import load_dotenv
-from web_search_tool import WebSearchTool
 
 # Import the modular components
 import storage
@@ -154,7 +153,7 @@ class CognitiveAgent:
         if pipeline_type == "default":
             self.pipeline = PipelineFactory.create_default_pipeline(
                 call_ollama_model, self.tool_registry, self.memory_manager,
-                self.knowledge_extractor, storage, embeddings
+                self.knowledge_extractor, storage, embeddings, self.kg
             )
         elif pipeline_type == "simple":
             self.pipeline = PipelineFactory.create_simple_pipeline(
@@ -162,7 +161,7 @@ class CognitiveAgent:
             )
         elif pipeline_type == "memory_focused":
             self.pipeline = PipelineFactory.create_memory_focused_pipeline(
-                call_ollama_model, self.memory_manager, storage, embeddings
+                call_ollama_model, self.memory_manager, storage, embeddings, self.kg
             )
         else:
             # Custom pipeline configuration
@@ -173,7 +172,7 @@ class CognitiveAgent:
         # This would be implemented based on specific custom pipeline needs
         return PipelineFactory.create_default_pipeline(
             call_ollama_model, self.tool_registry, self.memory_manager,
-            self.knowledge_extractor, storage, embeddings
+            self.knowledge_extractor, storage, embeddings, self.kg
         )
     
     def _ensure_embeddings(self):

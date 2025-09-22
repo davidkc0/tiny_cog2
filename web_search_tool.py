@@ -6,6 +6,8 @@ from typing import Dict, Any, List, Optional
 from tool_system import Tool
 from dataclasses import dataclass
 from datetime import datetime
+from ddgs import DDGS
+
 
 @dataclass
 class SearchResult:
@@ -254,7 +256,6 @@ class WebSearchTool(Tool):
     def _duckduckgo_search(self, query: str) -> List[Dict]:
         """Search using DuckDuckGo (via ddgs library)"""
         try:
-            from ddgs import DDGS
             ddgs = DDGS()
             results = ddgs.text(query, max_results=self.max_results)
             return results

@@ -247,9 +247,10 @@ class SkillsExtractor:
 class MemoryEnhancer:
     """Main class that coordinates memory extraction and storage"""
     
-    def __init__(self, storage_module, embeddings_module):
+    def __init__(self, storage_module, embeddings_module, kg=None):
         self.storage = storage_module
         self.embeddings = embeddings_module
+        self.kg = kg  # Knowledge Graph for unified storage
         self.semantic_extractor = SemanticFactExtractor()
         self.skills_extractor = SkillsExtractor()
     
@@ -270,18 +271,31 @@ class MemoryEnhancer:
         agent_facts = self.semantic_extractor.extract_facts(agent_response, "assistant")
         agent_skills = self.skills_extractor.extract_skills(agent_response, "assistant")
         
-        # Store semantic facts
+        # Store semantic facts in Knowledge Graph (unified storage)
         for fact in user_facts + agent_facts:
             if fact["confidence"] > 0.6:  # Only store high-confidence facts
-                fact_id = self.storage.insert_semantic(
-                    fact["key"], 
-                    fact["value"], 
-                    f"extracted_{fact['speaker']}"
-                )
-                fact_emb = self.embeddings.embed_text(f"{fact['key']} = {fact['value']}")
-                self.storage.upsert_vector("semantic", fact_id, fact_emb)
-                results["stored_facts"] += 1
-                results["semantic_facts"].append(fact)
+                if self.kg:
+                    # Store in Knowledge Graph as relationships
+                    # Convert fact key-value pairs to entity-relationship format
+                    subject = "user" if fact["speaker"] == "user" else "assistant"
+                    predicate = fact["key"].replace("_", " ")  # Clean up predicate
+                    object_entity = fact["value"]
+                    
+                    # Store the relationship in KG
+                    self.kg.upsert_relation(subject, predicate, object_entity, weight=fact["confidence"])
+                    results["stored_facts"] += 1
+                    results["semantic_facts"].append(fact)
+                else:
+                    # Fallback to semantic table if no KG available
+                    fact_id = self.storage.insert_semantic(
+                        fact["key"], 
+                        fact["value"], 
+                        f"extracted_{fact['speaker']}"
+                    )
+                    fact_emb = self.embeddings.embed_text(f"{fact['key']} = {fact['value']}")
+                    self.storage.upsert_vector("semantic", fact_id, fact_emb)
+                    results["stored_facts"] += 1
+                    results["semantic_facts"].append(fact)
         
         # Store skills
         for skill in user_skills + agent_skills:

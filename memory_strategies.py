@@ -37,12 +37,22 @@ class DefaultMemoryStrategy(MemoryStrategy):
                 for role, text, ts in episodic_items:
                     context_lines.append(f"Memory ({role}): {text[:100]}...")
             
-            # Retrieve from semantic memory  
-            semantic_ids = storage.nearest("semantic", query_emb, k=self.semantic_k)
-            if semantic_ids:
-                semantic_items = storage.get_semantic_by_ids(semantic_ids)
-                for key, value, source, ts in semantic_items:
-                    context_lines.append(f"Knowledge: {key} = {value}")
+            # Retrieve from knowledge graph (unified semantic storage)
+            if kg and self.semantic_k > 0:
+                # Search entities in KG that match the query
+                matching_entities = kg.search_entities(query, limit=self.semantic_k)
+                for entity in matching_entities:
+                    # Get relationships for this entity
+                    relationships = kg.get_related_concepts(entity, max_out=3)
+                    for target, relation in relationships:
+                        context_lines.append(f"Knowledge: {entity} {relation} {target}")
+            else:
+                # Fallback to semantic memory if no KG available
+                semantic_ids = storage.nearest("semantic", query_emb, k=self.semantic_k)
+                if semantic_ids:
+                    semantic_items = storage.get_semantic_by_ids(semantic_ids)
+                    for key, value, source, ts in semantic_items:
+                        context_lines.append(f"Knowledge: {key} = {value}")
             
             # Retrieve from skills
             skill_ids = storage.nearest("skills", query_emb, k=self.skills_k)
@@ -217,15 +227,27 @@ class EnhancedMemoryStrategy(MemoryStrategy):
                     for role, text, ts in episodic_items:
                         context_lines.append(f"Memory ({role}): {text[:80]}...")
             
-            # Enhanced semantic memory retrieval
+            # Enhanced knowledge graph retrieval (unified semantic storage)
             if semantic_k > 0:
-                semantic_ids = storage.nearest("semantic", query_emb, k=semantic_k)
-                if semantic_ids:
-                    semantic_items = storage.get_semantic_by_ids(semantic_ids)
-                    for key, value, source, ts in semantic_items:
-                        # Format semantic facts more clearly
-                        fact_type = self._extract_fact_type(key)
-                        context_lines.append(f"Fact ({fact_type}): {key} = {value}")
+                kg = context.get("kg")
+                if kg:
+                    # Search entities in KG that match the query
+                    matching_entities = kg.search_entities(query, limit=semantic_k)
+                    for entity in matching_entities:
+                        # Get relationships for this entity
+                        relationships = kg.get_related_concepts(entity, max_out=3)
+                        for target, relation in relationships:
+                            fact_type = self._extract_fact_type(relation)
+                            context_lines.append(f"Fact ({fact_type}): {entity} {relation} {target}")
+                else:
+                    # Fallback to semantic memory if no KG available
+                    semantic_ids = storage.nearest("semantic", query_emb, k=semantic_k)
+                    if semantic_ids:
+                        semantic_items = storage.get_semantic_by_ids(semantic_ids)
+                        for key, value, source, ts in semantic_items:
+                            # Format semantic facts more clearly
+                            fact_type = self._extract_fact_type(key)
+                            context_lines.append(f"Fact ({fact_type}): {key} = {value}")
             
             # Enhanced skills memory retrieval
             if skills_k > 0:
